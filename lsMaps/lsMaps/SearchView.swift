@@ -3,32 +3,17 @@
 //  lsMaps
 //
 //  Created by Carl on 8/27/25.
-//
+
 import SwiftUI
+import Combine
 
 struct SearchView: View {
+    @StateObject private var viewModel = SearchViewModel()
     @State private var searchText: String = ""
-    
-    // Mock search result list (replace with real search logic later)
-    let sampleLocations = [
-        "Golden Gate Bridge",
-        "Yosemite National Park",
-        "Apple Park",
-        "Statue of Liberty",
-        "Eiffel Tower"
-    ]
-    
-    var filteredLocations: [String] {
-        if searchText.isEmpty {
-            return []
-        } else {
-            return sampleLocations.filter { $0.localizedCaseInsensitiveContains(searchText) }
-        }
-    }
-    
+
     var body: some View {
         VStack {
-            // Top bar with search field
+            // Search input
             HStack {
                 Spacer()
                 TextField("Where do you want to go", text: $searchText)
@@ -43,19 +28,28 @@ struct SearchView: View {
                 Spacer()
             }
             .padding(.bottom, 10)
-            
-            // List of search results
-            List(filteredLocations, id: \.self) { location in
-                Text(location)
+
+            // List of results
+            List(viewModel.results, id: \.placeId) { result in
+                VStack(alignment: .leading) {
+                    Text(result.formatted ?? "Unknown address")
+                        .font(.body)
+                    Text(result.addressLine2 ?? "")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
             }
             .listStyle(.plain)
-            
+
             Spacer()
         }
+        .padding(.top)
         .navigationTitle("Search")
+        .onChange(of: searchText) { newValue in
+            viewModel.search(text: newValue)
+        }
     }
 }
-
 
 #Preview {
     SearchView()
